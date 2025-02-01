@@ -17,7 +17,6 @@ data class User(
             balance = balance.subtract(amount)
             true
         } else false
-
     }
 
     fun addDebt(creditor: String, amount: BigDecimal) {

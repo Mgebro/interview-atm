@@ -7,9 +7,16 @@ import java.math.BigDecimal
 
 @Service
 class ATMService {
+
     private val users: MutableMap<String, User> = mutableMapOf()
     private var currentUser: User? = null
 
+    /**
+     * Logs in a user by name. If the user does not exist, a new user is created.
+     *
+     * @param name the name of the user
+     * @return a welcome message including balance and debt information
+     */
     fun login(name: String): String {
         val trimmedName = name.trim()
         val user = users.getOrPut(trimmedName) { User(trimmedName) }
@@ -32,6 +39,11 @@ class ATMService {
         return "Hello, ${user.name}!\nYour balance is \$${user.balance}$infoOutput"
     }
 
+    /**
+     * Logs out the current user.
+     *
+     * @return a goodbye message
+     */
     fun logout(): String {
         val user = currentUser
         return if (user == null) {
@@ -42,6 +54,12 @@ class ATMService {
         }
     }
 
+    /**
+     * Deposits a specified amount into the current user's balance, automatically repaying debts if applicable.
+     *
+     * @param amount the amount to deposit
+     * @return a message indicating balance and remaining debts
+     */
     fun deposit(amount: BigDecimal): String {
         val user = currentUser ?: return "Please login first!"
         if (amount <= BigDecimal.ZERO) return "Invalid amount!"
@@ -89,6 +107,12 @@ class ATMService {
         return remaining
     }
 
+    /**
+     * Withdraws a specified amount from the current user's balance.
+     *
+     * @param amount the amount to withdraw
+     * @return a message indicating success or failure
+     */
     fun withdraw(amount: BigDecimal): String {
         val user = currentUser ?: return "Please login first!"
         if (amount <= BigDecimal.ZERO) return "Invalid amount!"
@@ -99,6 +123,13 @@ class ATMService {
         }
     }
 
+    /**
+     * Transfers money to another user, repaying debts if applicable.
+     *
+     * @param targetUserName the recipient's name
+     * @param amount         the transfer amount
+     * @return a message indicating transfer success or failure
+     */
     fun transfer(targetUserName: String, amount: BigDecimal): String {
         val sender = currentUser ?: return "Please login first!"
         if (amount <= BigDecimal.ZERO) return "Invalid transfer amount!"
@@ -116,6 +147,15 @@ class ATMService {
         }
     }
 
+    /**
+     * Handles a reverse debt transfer from the sender to the recipient.
+     *
+     * @param sender      the user initiating the transfer
+     * @param recipient   the user who owes the sender
+     * @param reverseDebt the debt record being reduced
+     * @param amount      the amount to be applied toward the debt
+     * @return a message indicating the remaining debt or the result of a regular transfer
+     */
     private fun handleReverseDebtTransfer(sender: User, recipient: User, reverseDebt: Debt, amount: BigDecimal): String {
         return if (amount <= reverseDebt.amount) {
             reverseDebt.amount = reverseDebt.amount.subtract(amount)
@@ -130,6 +170,15 @@ class ATMService {
         }
     }
 
+
+    /**
+     * Transfers money from the sender to the recipient, handling debt if necessary.
+     *
+     * @param sender    the user sending the money
+     * @param recipient the user receiving the money
+     * @param amount    the amount to be transferred
+     * @return a message indicating the transfer success, remaining balance, or incurred debt
+     */
     private fun handleRegularTransfer(sender: User, recipient: User, amount: BigDecimal): String {
         return if (sender.balance >= amount) {
             sender.withdraw(amount)
@@ -145,6 +194,11 @@ class ATMService {
         }
     }
 
+    /**
+     * Retrieves a list of the current user's outstanding debts.
+     *
+     * @return a formatted string listing debts
+     */
     fun debts(): String {
         val user = currentUser ?: return "Please login first!"
         if (user.debts.isEmpty()) return "No outstanding debts."
