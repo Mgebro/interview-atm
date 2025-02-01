@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 
 class ATMCommandsTest {
     private lateinit var atmService: ATMService
@@ -32,23 +31,23 @@ class ATMCommandsTest {
     }
 
     @Test
-    fun `logout command should return login first message when not logged in`() {
+    fun `logout command should return no user logged in message when not logged in`() {
         val output = atmCommands.logout()
-        assertEquals("Please login first!", output)
+        assertEquals("No user logged in!", output)
     }
 
     @Test
     fun `deposit command should increase balance when no debt exists`() {
         atmCommands.login("Alice")
-        val output = atmCommands.deposit(BigDecimal("100"))
+        val output = atmCommands.deposit("100")
         assertTrue(output.contains("Your balance is \$100"), "Balance should increase to 100 when no debt exists")
     }
 
     @Test
     fun `deposit command should return invalid message for non-positive amount`() {
         atmCommands.login("Alice")
-        val outputZero = atmCommands.deposit(BigDecimal("0"))
-        val outputNegative = atmCommands.deposit(BigDecimal("-5"))
+        val outputZero = atmCommands.deposit("0")
+        val outputNegative = atmCommands.deposit("-5")
         assertEquals("Invalid amount!", outputZero)
         assertEquals("Invalid amount!", outputNegative)
     }
@@ -56,41 +55,41 @@ class ATMCommandsTest {
     @Test
     fun `withdraw command should decrease balance when sufficient funds exist`() {
         atmCommands.login("Alice")
-        atmCommands.deposit(BigDecimal("100"))
-        val output = atmCommands.withdraw(BigDecimal("40"))
+        atmCommands.deposit("100")
+        val output = atmCommands.withdraw("40")
         assertTrue(output.contains("Your balance is \$60"), "After withdrawing 40 from 100, balance should be 60")
     }
 
     @Test
     fun `withdraw command should return insufficient funds message when balance is low`() {
         atmCommands.login("Alice")
-        atmCommands.deposit(BigDecimal("50"))
-        val output = atmCommands.withdraw(BigDecimal("60"))
+        atmCommands.deposit("50")
+        val output = atmCommands.withdraw("60")
         assertEquals("Insufficient funds!", output)
     }
 
     @Test
     fun `transfer command should not allow self-transfer`() {
         atmCommands.login("Alice")
-        val output = atmCommands.transfer("Alice", BigDecimal("10"))
+        val output = atmCommands.transfer("Alice", "10")
         assertEquals("Self-transfer not allowed!", output)
     }
 
     @Test
     fun `transfer command should fail when target user does not exist`() {
         atmCommands.login("Alice")
-        atmCommands.deposit(BigDecimal("50"))
-        val output = atmCommands.transfer("Bob", BigDecimal("10"))
+        atmCommands.deposit("50")
+        val output = atmCommands.transfer("Bob", "10")
         assertEquals("Target user does not exist!", output)
     }
 
     @Test
     fun `transfer command should succeed when sufficient funds exist`() {
         atmCommands.login("Alice")
-        atmCommands.deposit(BigDecimal("100"))
+        atmCommands.deposit("100")
         atmService.login("Bob")
         atmCommands.login("Alice")
-        val output = atmCommands.transfer("Bob", BigDecimal("50"))
+        val output = atmCommands.transfer("Bob", "50")
         assertTrue(output.contains("Transferred \$50"), "Expected a successful transfer message")
         assertTrue(output.contains("Your balance is \$50"), "Alice's balance should now be 50")
         val bobOutput = atmCommands.login("Bob")
@@ -102,7 +101,7 @@ class ATMCommandsTest {
         atmCommands.login("Alice")
         atmCommands.login("Bob")
         atmCommands.login("Alice")
-        val output = atmCommands.transfer("Bob", BigDecimal("20"))
+        val output = atmCommands.transfer("Bob", "20")
         assertTrue(output.contains("Transferred \$0"), "No funds should be transferred")
         assertTrue(output.contains("Owed \$20 to Bob"), "A full debt of 20 should be recorded")
     }
@@ -120,8 +119,8 @@ class ATMCommandsTest {
         atmCommands.login("Bob")
         atmCommands.login("Charlie")
         atmCommands.login("Alice")
-        atmCommands.transfer("Bob", BigDecimal("3"))
-        atmCommands.transfer("Charlie", BigDecimal("5"))
+        atmCommands.transfer("Bob", "3")
+        atmCommands.transfer("Charlie", "5")
         val output = atmCommands.debts()
         val expectedLine1 = "1. Owed \$3 to Bob"
         val expectedLine2 = "2. Owed \$5 to Charlie"

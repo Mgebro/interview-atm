@@ -5,7 +5,7 @@ import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 import org.springframework.validation.annotation.Validated
-import java.math.BigDecimal
+
 
 @Validated
 @ShellComponent
@@ -13,9 +13,9 @@ class ATMCommands(private val atmService: ATMService) {
 
     @ShellMethod("Login")
     fun login(
-        @ShellOption username: String
+        @ShellOption vararg args: String
     ): String {
-        return atmService.login(username)
+        return atmService.login(args[0])
     }
 
     @ShellMethod("Logout")
@@ -25,24 +25,23 @@ class ATMCommands(private val atmService: ATMService) {
 
     @ShellMethod("Deposit money to account")
     fun deposit(
-        @ShellOption amount: BigDecimal
+        @ShellOption vararg args: String
     ): String {
-        return atmService.deposit(amount)
+        return atmService.deposit(args[0].toBigDecimal())
     }
 
     @ShellMethod("Withdraw money from account")
     fun withdraw(
-        @ShellOption amount: BigDecimal
+        @ShellOption vararg args: String
     ): String {
-        return atmService.withdraw(amount)
+        return atmService.withdraw(args[0].toBigDecimal())
     }
 
     @ShellMethod("Transfer money to another user")
     fun transfer(
-        @ShellOption target: String,
-        @ShellOption amount: BigDecimal
+        @ShellOption vararg args: String
     ): String {
-        return atmService.transfer(target, amount)
+        return atmService.transfer(args[0], args[1].toBigDecimal())
     }
 
     @ShellMethod("Show debts")
